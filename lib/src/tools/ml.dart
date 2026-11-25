@@ -16,8 +16,20 @@ import 'package:studio_core/apps/apps.dart';
 import '../common.dart';
 import '../logic/doc_logic.dart';
 
-/// Kamera ya da galeriden görüntü seçip metni tanır.
-Future<String?> pickAndRecognize(BuildContext context, ToolContext t, ImageSource src, TextRecognitionScript script) async {
+/// Android'de metin tanıma modelleri uygulamaya gömülü değildir; Google Play
+/// hizmetleri ilk kullanımda bir kez indirir (sonra internetsiz çalışır).
+/// İndirme sürerken ML Kit "UNAVAILABLE / waiting for ... to be downloaded"
+/// hatası verir.
+bool isModelDownloading(Object e) {
+  final s = e.toString().toLowerCase();
+  return s.contains('download') || s.contains('waiting for') || s.contains('unavailable');
+}
+
+/// Kamera ya da galeriden görüntü seçip metni tanır. Model henüz indiriliyorsa
+/// [onDownloading] ile "model indiriliyor" durumu gösterilir ve hazır olana
+/// kadar (en çok ~2 dk) yeniden denenir.
+Future<String?> pickAndRecognize(BuildContext context, ToolContext t, ImageSource src, TextRecognitionScript script,
+    {ValueChanged<bool>? onDownloading}) async {
   if (src == ImageSource.camera && !await rationaleOnce(context, t, 'camera', Icons.photo_camera_rounded)) return null;
   XFile? x;
   try {
@@ -28,15 +40,40 @@ Future<String?> pickAndRecognize(BuildContext context, ToolContext t, ImageSourc
   }
   if (x == null) return null;
   final r = TextRecognizer(script: script);
+  final img = InputImage.fromFilePath(x.path);
+  var waited = false;
   try {
-    final res = await r.processImage(InputImage.fromFilePath(x.path));
-    return res.text;
-  } catch (_) {
+    for (var i = 0;; i++) {
+      try {
+        final res = await r.processImage(img);
+        return res.text;
+      } catch (e) {
+        if (!isModelDownloading(e) || i >= 40 || !context.mounted) rethrow;
+        if (!waited) {
+          waited = true;
+          onDownloading?.call(true);
+        }
+        await Future<void>.delayed(const Duration(seconds: 3));
+      }
+    }
+  } catch (e) {
+    if (isModelDownloading(e) && context.mounted) toast(context, L(t, 'ocr_downloading'));
     return null;
   } finally {
+    if (waited) onDownloading?.call(false);
     await r.close();
   }
 }
+
+/// "Model indiriliyor" satırı (ilerleme çubuğunun altında).
+Widget downloadingNote(ToolContext t) => Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(children: [
+        const Icon(Icons.downloading_rounded, size: 18, color: Colors.white70),
+        const SizedBox(width: 8),
+        Expanded(child: Text(L(t, 'ocr_downloading'), style: const TextStyle(color: Colors.white70, fontSize: 13))),
+      ]),
+    );
 
 // ======================================================== kartvizit tarayıcı
 
@@ -51,6 +88,7 @@ class CardScanTool extends StatefulWidget {
 class _CardScanToolState extends State<CardScanTool> {
   List<Map<String, Object?>> _cards = [];
   bool _busy = false;
+  bool _dl = false;
   bool _loaded = false;
   ToolContext get t => widget.t;
 
@@ -68,7 +106,10 @@ class _CardScanToolState extends State<CardScanTool> {
 
   Future<void> _scan(ImageSource src) async {
     setState(() => _busy = true);
-    final text = await pickAndRecognize(context, t, src, TextRecognitionScript.latin);
+    final text = await pickAndRecognize(context, t, src, TextRecognitionScript.latin,
+        onDownloading: (v) {
+      if (mounted) setState(() => _dl = v);
+    });
     if (!mounted) return;
     setState(() => _busy = false);
     if (text == null) return;
@@ -173,6 +214,7 @@ class _CardScanToolState extends State<CardScanTool> {
                 ),
               ]),
               if (_busy) const Padding(padding: EdgeInsets.all(12), child: LinearProgressIndicator()),
+              if (_busy && _dl) downloadingNote(t),
               const SizedBox(height: 6),
               Text(L(t, 'ml_on_device'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 13)),
             ]),
@@ -223,6 +265,7 @@ class _OcrToolState extends State<OcrTool> {
   final _text = TextEditingController();
   List<String> _history = [];
   bool _busy = false;
+  bool _dl = false;
   ToolContext get t => widget.t;
 
   @override
@@ -242,7 +285,9 @@ class _OcrToolState extends State<OcrTool> {
 
   Future<void> _run(ImageSource src) async {
     setState(() => _busy = true);
-    final r = await pickAndRecognize(context, t, src, _scripts[_script]);
+    final r = await pickAndRecognize(context, t, src, _scripts[_script], onDownloading: (v) {
+      if (mounted) setState(() => _dl = v);
+    });
     if (!mounted) return;
     setState(() => _busy = false);
     if (r == null) return;
@@ -281,6 +326,7 @@ class _OcrToolState extends State<OcrTool> {
             ),
           ]),
           if (_busy) const Padding(padding: EdgeInsets.all(12), child: LinearProgressIndicator()),
+              if (_busy && _dl) downloadingNote(t),
           const SizedBox(height: 6),
           Text(L(t, 'ml_on_device'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white60, fontSize: 13)),
         ]),
