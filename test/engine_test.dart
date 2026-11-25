@@ -33,7 +33,7 @@ void main() {
       final s = TextStats.of('Merhaba dünya. Nasılsın?\n\nİyiyim!');
       expect(s.words, 4);
       expect(s.sentences, 3);
-      expect(s.lines, 4);
+      expect(s.lines, 3);
       expect(s.paragraphs, 2);
       expect(s.chars, 'Merhaba dünya. Nasılsın?\n\nİyiyim!'.runes.length);
       expect(TextStats.of('').words, 0);
@@ -135,7 +135,7 @@ void main() {
       expect(v, contains('N:Yılmaz;Ayşe;;;'));
       expect(v, contains('TEL;TYPE=CELL:+90 532 123 45 67'));
       expect(v, endsWith('END:VCARD'));
-      expect(ContactCard(name: 'a;b').toVCard(), contains('FN:a\;b'));
+      expect(ContactCard(name: 'a;b').toVCard(), contains(r'FN:a\;b'));
     });
     test('zihin haritası yerleşimi', () {
       final root = MindNode('r', 'Kök', children: [
