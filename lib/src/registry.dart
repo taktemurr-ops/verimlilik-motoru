@@ -65,7 +65,7 @@ final List<AppTool> verTools = [
     icon: Icons.timer_rounded,
     color: const Color(0xFFE57373),
     category: 'time',
-    keywords: const ['pomodoro', 'focus', 'timer'],
+    keywords: const ['focus', 'timer', 'break'],
     builder: (context, t) => PomodoroTool(t),
   ),
   AppTool(
