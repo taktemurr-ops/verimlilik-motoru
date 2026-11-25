@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -10,9 +12,9 @@ import 'package:studio_core/core/save_store.dart';
 import 'package:verimlilik_motoru/verimlilik_motoru.dart';
 
 void main() {
-  test('29 uygulama, 33 dilde ad ve açıklama, benzersiz kimlik', () {
-    expect(verTools.length, 29);
-    expect(verTools.map((t) => t.id).toSet().length, 29);
+  test('32 uygulama, 33 dilde ad ve açıklama, benzersiz kimlik', () {
+    expect(verTools.length, 32);
+    expect(verTools.map((t) => t.id).toSet().length, 32);
     for (final t in verTools) {
       expect(t.title.length, 33, reason: t.id);
       expect(t.tagline.length, 33, reason: t.id);
@@ -188,6 +190,84 @@ void main() {
     });
   });
 
+  group('şifre kasası', () {
+    const fast = KdfParams(memoryKiB: 64, iterations: 1);
+    test('Argon2id + AES-GCM: aç/kapa, yanlış şifre reddedilir', () async {
+      final clear = utf8.encode('{"items":[{"title":"posta","pass":"gizli-ş"}]}');
+      final env = await sealWithPassword('doğru at pil zımba', clear, params: fast);
+      expect(env['fmt'], kVaultFormat);
+      expect(utf8.decode(base64Decode(env['ct'] as String), allowMalformed: true), isNot(contains('gizli')));
+      expect(utf8.decode(await openWithPassword('doğru at pil zımba', env)), contains('gizli-ş'));
+      await expectLater(openWithPassword('yanlış', env), throwsA(isA<VaultAuthError>()));
+      // Değiştirilmiş şifreli metin de reddedilir.
+      final ct = base64Decode(env['ct'] as String);
+      ct[0] ^= 1;
+      await expectLater(openWithPassword('doğru at pil zımba', {...env, 'ct': base64Encode(ct)}), throwsA(isA<VaultAuthError>()));
+    });
+    test('anahtar türetme belirleyici, tuza bağlı', () async {
+      final a = await deriveVaultKey('parola', List.filled(16, 1), fast);
+      final b = await deriveVaultKey('parola', List.filled(16, 1), fast);
+      final c = await deriveVaultKey('parola', List.filled(16, 2), fast);
+      expect(a.length, 32);
+      expect(a, b);
+      expect(a, isNot(c));
+    });
+    test('şifre üretici ve güç', () {
+      final p = generatePassword(length: 24, rng: Random(7));
+      expect(p.length, 24);
+      expect(p, matches(RegExp(r'[a-z]')));
+      expect(p, matches(RegExp(r'[A-Z]')));
+      expect(p, matches(RegExp(r'[0-9]')));
+      expect(p, matches(RegExp(r'[^a-zA-Z0-9]')));
+      expect(generatePassword(length: 10, symbols: false, rng: Random(1)), isNot(matches(RegExp(r'[^a-zA-Z0-9]'))));
+      expect(passwordScore('123456'), 0);
+      expect(passwordScore('abcdefgh'), lessThanOrEqualTo(1));
+      expect(passwordScore(p), 4);
+    });
+  });
+
+  group('hedef ve Gantt', () {
+    test('OKR ilerlemesi ve durum', () {
+      expect(krProgress(0, 100, 25), 0.25);
+      expect(krProgress(80, 70, 75), 0.5); // azalan hedef (ör. kilo, hata sayısı)
+      expect(krProgress(0, 10, 15), 1);
+      expect(objectiveProgress([(1.0, 1.0), (0.0, 3.0)]), 0.25);
+      final s = DateTime(2026, 10, 1), e = DateTime(2026, 12, 31);
+      expect(expectedProgress(s, e, DateTime(2026, 11, 15)), closeTo(0.49, 0.02));
+      expect(goalStatus(0.45, 0.49), 0);
+      expect(goalStatus(0.30, 0.49), 1);
+      expect(goalStatus(0.10, 0.49), 2);
+      expect(goalStatus(1, 0.2), 3);
+      expect(quarterOf(DateTime(2026, 11, 25)), '2026 Q4');
+      final (qa, qb) = quarterRange(DateTime(2026, 2, 3));
+      expect(qa, DateTime(2026, 1, 1));
+      expect(qb, DateTime(2026, 3, 31));
+    });
+    test('bağımlılık kaydırma, kritik yol, döngü', () {
+      final d0 = DateTime(2026, 12, 1);
+      final tasks = [
+        GTask(id: 'a', name: 'Tasarım', start: d0, days: 5),
+        GTask(id: 'b', name: 'Yazılım', start: d0, days: 10, deps: ['a']),
+        GTask(id: 'c', name: 'Belge', start: d0, days: 3, deps: ['a']),
+        GTask(id: 'd', name: 'Teslim', start: d0, days: 0, deps: ['b', 'c']),
+      ];
+      final s = scheduleTasks(tasks);
+      expect(s[1].start, DateTime(2026, 12, 6));
+      expect(s[2].start, DateTime(2026, 12, 6));
+      expect(s[3].start, DateTime(2026, 12, 16));
+      expect(criticalPath(s), {'a', 'b', 'd'});
+      final (ps, pe, _) = projectSpan(s);
+      expect(ps, d0);
+      expect(pe, DateTime(2026, 12, 16));
+      final loop = [
+        GTask(id: 'x', name: 'x', start: d0, days: 1, deps: ['y']),
+        GTask(id: 'y', name: 'y', start: d0, days: 1, deps: ['x']),
+      ];
+      expect(topoOrder(loop), isNull);
+      expect(scheduleTasks(loop), loop);
+    });
+  });
+
   // Eklentisiz açılabilen ekranlar (kamera, mikrofon, ML eklentileri test
   // ortamında yoktur; onlar cihazda denenir).
   for (final id in [
@@ -197,6 +277,7 @@ void main() {
     'uyg-zaman-takibi', 'uyg-fatura-ve-teklif-hazirlayici', 'uyg-okuma-listesi',
     'uyg-film-ve-dizi-izleme-listesi', 'uyg-ders-programi', 'uyg-odev-takibi', 'uyg-vardiya-planlayici',
     'uyg-sunum-zamanlayici-ve-teleprompter', 'uyg-pano-gecmisi', 'uyg-etiket-ve-envanter',
+    'uyg-sifre-kasasi', 'uyg-hedef-takibi', 'uyg-proje-zaman-cizelgesi',
   ]) {
     testWidgets('ekran açılır: $id', (tester) async {
       final s = AppServices(hubId: 'm', backend: MemoryBackend(), ads: NoAdsService(), purchases: NoPurchaseService());

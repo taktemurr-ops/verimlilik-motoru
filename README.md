@@ -1,6 +1,6 @@
 # verimlilik-motoru
 
-Verimlilik ailesinin motoru: 29 uygulamanın gerçek uygulamaları, 33 dilde metinleri ve
+Verimlilik ailesinin motoru: 32 uygulamanın gerçek uygulamaları, 33 dilde metinleri ve
 merkez görünümü (onaylı oyun merkezi tasarımının lacivert-kehribar tonu).
 
 - Çatı: `studio_core/apps` (AppTool, merkez kabuğu, reklam/satın alma, gizlilik, favoriler).
@@ -23,3 +23,15 @@ merkez görünümü (onaylı oyun merkezi tasarımının lacivert-kehribar tonu)
 Metinler `proto/apps/verimlilik/ver_titles*.py` ve `ver_labels*.py` dosyalarından
 `proto/apps/verimlilik/mkengine.py` ile üretilir (`lib/src/tx.dart`, `lib/src/registry.dart`).
 Saf mantık (`lib/src/logic/`) `test/engine_test.dart` ile sınanır.
+
+## 2. tur ekleri
+- **Şifre Kasası** (`uyg-sifre-kasasi`): çevrimdışı; kayıtlar AES-256-GCM ile şifreli, anahtar ana
+  şifreden Argon2id (19 MiB, 2 tur) ile türetilir; tuz ve ayarlar zarfta saklanır. İsteğe bağlı
+  biyometrik açma: anahtar Keystore/Keychain'de (`flutter_secure_storage`), `local_auth` ile açılır
+  (merkezde Android `FlutterFragmentActivity`, iOS `NSFaceIDUsageDescription` gerekir). 5 dk
+  hareketsizlikte ve uygulamadan çıkınca kilitlenir; kopyalanan şifre 30 sn sonra panodan silinir.
+  Bulut yok; dışa aktarma ayrı şifreyle şifreli `.kasa` dosyasıdır. Ana şifre kurtarılamaz.
+- **Hedef ve OKR Takibi** (`uyg-hedef-takibi`): hedefler, ağırlıklı anahtar sonuçlar (sayı/yüzde/
+  yapıldı), ilerleme girişleri ve geçmişi, zamana göre durum, çeyrek süzgeci.
+- **Proje Zaman Çizelgesi** (`uyg-proje-zaman-cizelgesi`): Gantt, bitiş-başlangıç bağımlılıkları
+  (otomatik kaydırma, döngü engeli), kilometre taşları, kritik yol, bugün çizgisi, CSV paylaşımı.

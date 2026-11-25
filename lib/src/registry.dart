@@ -1,4 +1,4 @@
-/// Üretilmiş dosya (proto/apps/verimlilik/mkengine.py). Verimlilik ailesinin 29 uygulaması.
+/// Üretilmiş dosya (proto/apps/verimlilik/mkengine.py). Verimlilik ailesinin 32 uygulaması.
 library;
 
 import 'package:flutter/material.dart';
@@ -7,10 +7,13 @@ import 'package:studio_core/apps/apps.dart';
 import 'tools/boards.dart';
 import 'tools/calendar.dart';
 import 'tools/docs.dart';
+import 'tools/gantt.dart';
+import 'tools/goals.dart';
 import 'tools/lists.dart';
 import 'tools/ml.dart';
 import 'tools/plan.dart';
 import 'tools/records.dart';
+import 'tools/vault.dart';
 import 'tools/voice.dart';
 import 'tools/write.dart';
 import 'tx.dart';
@@ -319,6 +322,36 @@ final List<AppTool> verTools = [
     category: 'lists',
     keywords: const ['qr', 'inventory', 'stock'],
     builder: (context, t) => RecordsTool(t, kInventorySpec),
+  ),
+  AppTool(
+    id: 'uyg-sifre-kasasi',
+    title: kVerTitle['uyg-sifre-kasasi']!,
+    tagline: kVerTag['uyg-sifre-kasasi']!,
+    icon: Icons.lock_person_rounded,
+    color: const Color(0xFF26A69A),
+    category: 'lists',
+    keywords: const ['password', 'vault', 'aes'],
+    builder: (context, t) => VaultTool(t),
+  ),
+  AppTool(
+    id: 'uyg-hedef-takibi',
+    title: kVerTitle['uyg-hedef-takibi']!,
+    tagline: kVerTag['uyg-hedef-takibi']!,
+    icon: Icons.flag_rounded,
+    color: const Color(0xFFFF7043),
+    category: 'tasks',
+    keywords: const ['okr', 'goals', 'kpi'],
+    builder: (context, t) => GoalsTool(t),
+  ),
+  AppTool(
+    id: 'uyg-proje-zaman-cizelgesi',
+    title: kVerTitle['uyg-proje-zaman-cizelgesi']!,
+    tagline: kVerTag['uyg-proje-zaman-cizelgesi']!,
+    icon: Icons.view_timeline_rounded,
+    color: const Color(0xFF5C6BC0),
+    category: 'time',
+    keywords: const ['gantt', 'timeline', 'project'],
+    builder: (context, t) => GanttTool(t),
   ),
 ];
 
