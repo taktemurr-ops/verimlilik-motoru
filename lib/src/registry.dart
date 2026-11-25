@@ -1,0 +1,345 @@
+/// Üretilmiş dosya (proto/apps/verimlilik/mkengine.py). Verimlilik ailesinin 29 uygulaması.
+library;
+
+import 'package:flutter/material.dart';
+import 'package:studio_core/apps/apps.dart';
+
+import 'tools/boards.dart';
+import 'tools/calendar.dart';
+import 'tools/docs.dart';
+import 'tools/lists.dart';
+import 'tools/ml.dart';
+import 'tools/plan.dart';
+import 'tools/records.dart';
+import 'tools/voice.dart';
+import 'tools/write.dart';
+import 'tx.dart';
+
+/// Kategoriler (merkezdeki çip sırası).
+final List<AppCategory> verCategories = [
+  AppCategory(id: 'write', title: kVerCat['cat_write']!, icon: Icons.edit_note_rounded),
+  AppCategory(id: 'tasks', title: kVerCat['cat_tasks']!, icon: Icons.task_alt_rounded),
+  AppCategory(id: 'time', title: kVerCat['cat_time']!, icon: Icons.schedule_rounded),
+  AppCategory(id: 'docs', title: kVerCat['cat_docs']!, icon: Icons.description_rounded),
+  AppCategory(id: 'voice', title: kVerCat['cat_voice']!, icon: Icons.record_voice_over_rounded),
+  AppCategory(id: 'money', title: kVerCat['cat_money']!, icon: Icons.payments_rounded),
+  AppCategory(id: 'lists', title: kVerCat['cat_lists']!, icon: Icons.collections_bookmark_rounded),
+];
+
+/// Bütün uygulamalar (katalog sırası).
+final List<AppTool> verTools = [
+  AppTool(
+    id: 'uyg-not-defteri',
+    title: kVerTitle['uyg-not-defteri']!,
+    tagline: kVerTag['uyg-not-defteri']!,
+    icon: Icons.sticky_note_2_rounded,
+    color: const Color(0xFFFFE082),
+    category: 'write',
+    keywords: const ['notes', 'memo'],
+    builder: (context, t) => RecordsTool(t, kNotesSpec),
+  ),
+  AppTool(
+    id: 'uyg-yapilacaklar-listesi',
+    title: kVerTitle['uyg-yapilacaklar-listesi']!,
+    tagline: kVerTag['uyg-yapilacaklar-listesi']!,
+    icon: Icons.task_alt_rounded,
+    color: const Color(0xFF81C784),
+    category: 'tasks',
+    keywords: const ['todo', 'tasks'],
+    builder: (context, t) => RecordsTool(t, kTodoSpec),
+  ),
+  AppTool(
+    id: 'uyg-aliskanlik-takibi',
+    title: kVerTitle['uyg-aliskanlik-takibi']!,
+    tagline: kVerTag['uyg-aliskanlik-takibi']!,
+    icon: Icons.repeat_rounded,
+    color: const Color(0xFFFF8A65),
+    category: 'tasks',
+    keywords: const ['habit', 'streak'],
+    builder: (context, t) => HabitTool(t),
+  ),
+  AppTool(
+    id: 'uyg-pomodoro',
+    title: kVerTitle['uyg-pomodoro']!,
+    tagline: kVerTag['uyg-pomodoro']!,
+    icon: Icons.timer_rounded,
+    color: const Color(0xFFE57373),
+    category: 'time',
+    keywords: const ['pomodoro', 'focus', 'timer'],
+    builder: (context, t) => PomodoroTool(t),
+  ),
+  AppTool(
+    id: 'uyg-kontrol-ve-alisveris-listesi',
+    title: kVerTitle['uyg-kontrol-ve-alisveris-listesi']!,
+    tagline: kVerTag['uyg-kontrol-ve-alisveris-listesi']!,
+    icon: Icons.checklist_rounded,
+    color: const Color(0xFF4DB6AC),
+    category: 'tasks',
+    keywords: const ['shopping', 'checklist', 'market'],
+    builder: (context, t) => ChecklistTool(t),
+  ),
+  AppTool(
+    id: 'uyg-ses-kaydedici',
+    title: kVerTitle['uyg-ses-kaydedici']!,
+    tagline: kVerTag['uyg-ses-kaydedici']!,
+    icon: Icons.mic_rounded,
+    color: const Color(0xFFF06292),
+    category: 'voice',
+    keywords: const ['audio', 'voice', 'record'],
+    builder: (context, t) => RecorderTool(t),
+  ),
+  AppTool(
+    id: 'uyg-belge-tarayici',
+    title: kVerTitle['uyg-belge-tarayici']!,
+    tagline: kVerTag['uyg-belge-tarayici']!,
+    icon: Icons.document_scanner_rounded,
+    color: const Color(0xFF90CAF9),
+    category: 'docs',
+    keywords: const ['scan', 'pdf', 'camera'],
+    builder: (context, t) => ScannerTool(t),
+  ),
+  AppTool(
+    id: 'uyg-pdf-goruntuleyici',
+    title: kVerTitle['uyg-pdf-goruntuleyici']!,
+    tagline: kVerTag['uyg-pdf-goruntuleyici']!,
+    icon: Icons.picture_as_pdf_rounded,
+    color: const Color(0xFFEF5350),
+    category: 'docs',
+    keywords: const ['pdf', 'reader'],
+    builder: (context, t) => PdfViewerTool(t),
+  ),
+  AppTool(
+    id: 'uyg-hatirlatici',
+    title: kVerTitle['uyg-hatirlatici']!,
+    tagline: kVerTag['uyg-hatirlatici']!,
+    icon: Icons.notifications_active_rounded,
+    color: const Color(0xFFFFB74D),
+    category: 'tasks',
+    keywords: const ['alarm', 'reminder'],
+    builder: (context, t) => ReminderTool(t),
+  ),
+  AppTool(
+    id: 'uyg-cizim-defteri',
+    title: kVerTitle['uyg-cizim-defteri']!,
+    tagline: kVerTag['uyg-cizim-defteri']!,
+    icon: Icons.brush_rounded,
+    color: const Color(0xFFBA68C8),
+    category: 'write',
+    keywords: const ['draw', 'sketch', 'paint'],
+    builder: (context, t) => SketchTool(t),
+  ),
+  AppTool(
+    id: 'uyg-zihin-haritasi',
+    title: kVerTitle['uyg-zihin-haritasi']!,
+    tagline: kVerTag['uyg-zihin-haritasi']!,
+    icon: Icons.account_tree_rounded,
+    color: const Color(0xFF7986CB),
+    category: 'write',
+    keywords: const ['mind map', 'ideas'],
+    builder: (context, t) => MindMapTool(t),
+  ),
+  AppTool(
+    id: 'uyg-metin-araclari',
+    title: kVerTitle['uyg-metin-araclari']!,
+    tagline: kVerTag['uyg-metin-araclari']!,
+    icon: Icons.text_fields_rounded,
+    color: const Color(0xFF90A4AE),
+    category: 'write',
+    keywords: const ['word count', 'case', 'slug'],
+    builder: (context, t) => TextToolsTool(t),
+  ),
+  AppTool(
+    id: 'uyg-ajanda-ve-gunluk',
+    title: kVerTitle['uyg-ajanda-ve-gunluk']!,
+    tagline: kVerTag['uyg-ajanda-ve-gunluk']!,
+    icon: Icons.event_note_rounded,
+    color: const Color(0xFFAED581),
+    category: 'write',
+    keywords: const ['diary', 'calendar', 'journal'],
+    builder: (context, t) => AgendaTool(t),
+  ),
+  AppTool(
+    id: 'uyg-fatura-fis-takip',
+    title: kVerTitle['uyg-fatura-fis-takip']!,
+    tagline: kVerTag['uyg-fatura-fis-takip']!,
+    icon: Icons.receipt_rounded,
+    color: const Color(0xFF66BB6A),
+    category: 'money',
+    disclaimer: AppDisclaimer.finance,
+    keywords: const ['expense', 'receipt', 'harcama'],
+    builder: (context, t) => RecordsTool(t, kReceiptSpec),
+  ),
+  AppTool(
+    id: 'uyg-kanban-panosu',
+    title: kVerTitle['uyg-kanban-panosu']!,
+    tagline: kVerTag['uyg-kanban-panosu']!,
+    icon: Icons.view_kanban_rounded,
+    color: const Color(0xFF4FC3F7),
+    category: 'tasks',
+    keywords: const ['kanban', 'board'],
+    builder: (context, t) => KanbanTool(t),
+  ),
+  AppTool(
+    id: 'uyg-zaman-takibi',
+    title: kVerTitle['uyg-zaman-takibi']!,
+    tagline: kVerTag['uyg-zaman-takibi']!,
+    icon: Icons.more_time_rounded,
+    color: const Color(0xFF26C6DA),
+    category: 'time',
+    keywords: const ['timesheet', 'hours'],
+    builder: (context, t) => TimeTrackTool(t),
+  ),
+  AppTool(
+    id: 'uyg-fatura-ve-teklif-hazirlayici',
+    title: kVerTitle['uyg-fatura-ve-teklif-hazirlayici']!,
+    tagline: kVerTag['uyg-fatura-ve-teklif-hazirlayici']!,
+    icon: Icons.request_quote_rounded,
+    color: const Color(0xFF9CCC65),
+    category: 'money',
+    disclaimer: AppDisclaimer.finance,
+    keywords: const ['invoice', 'quote', 'pdf'],
+    builder: (context, t) => InvoiceTool(t),
+  ),
+  AppTool(
+    id: 'uyg-kartvizit-tarayici',
+    title: kVerTitle['uyg-kartvizit-tarayici']!,
+    tagline: kVerTag['uyg-kartvizit-tarayici']!,
+    icon: Icons.contact_mail_rounded,
+    color: const Color(0xFF4DD0E1),
+    category: 'docs',
+    keywords: const ['vcard', 'contact', 'ocr'],
+    builder: (context, t) => CardScanTool(t),
+  ),
+  AppTool(
+    id: 'uyg-gorselden-metin',
+    title: kVerTitle['uyg-gorselden-metin']!,
+    tagline: kVerTag['uyg-gorselden-metin']!,
+    icon: Icons.text_snippet_rounded,
+    color: const Color(0xFFB0BEC5),
+    category: 'docs',
+    keywords: const ['ocr', 'scan', 'text'],
+    builder: (context, t) => OcrTool(t),
+  ),
+  AppTool(
+    id: 'uyg-cevrimdisi-ceviri',
+    title: kVerTitle['uyg-cevrimdisi-ceviri']!,
+    tagline: kVerTag['uyg-cevrimdisi-ceviri']!,
+    icon: Icons.translate_rounded,
+    color: const Color(0xFF5C6BC0),
+    category: 'voice',
+    keywords: const ['translate', 'offline'],
+    builder: (context, t) => TranslateTool(t),
+  ),
+  AppTool(
+    id: 'uyg-sesten-yaziya-not',
+    title: kVerTitle['uyg-sesten-yaziya-not']!,
+    tagline: kVerTag['uyg-sesten-yaziya-not']!,
+    icon: Icons.record_voice_over_rounded,
+    color: const Color(0xFFEC407A),
+    category: 'voice',
+    keywords: const ['dictation', 'speech'],
+    builder: (context, t) => SpeechNoteTool(t),
+  ),
+  AppTool(
+    id: 'uyg-okuma-listesi',
+    title: kVerTitle['uyg-okuma-listesi']!,
+    tagline: kVerTag['uyg-okuma-listesi']!,
+    icon: Icons.auto_stories_rounded,
+    color: const Color(0xFFA1887F),
+    category: 'lists',
+    keywords: const ['books', 'kitap'],
+    builder: (context, t) => RecordsTool(t, kReadingSpec),
+  ),
+  AppTool(
+    id: 'uyg-film-ve-dizi-izleme-listesi',
+    title: kVerTitle['uyg-film-ve-dizi-izleme-listesi']!,
+    tagline: kVerTag['uyg-film-ve-dizi-izleme-listesi']!,
+    icon: Icons.movie_rounded,
+    color: const Color(0xFFFFCA28),
+    category: 'lists',
+    keywords: const ['movies', 'tv', 'series'],
+    builder: (context, t) => RecordsTool(t, kWatchSpec),
+  ),
+  AppTool(
+    id: 'uyg-ders-programi',
+    title: kVerTitle['uyg-ders-programi']!,
+    tagline: kVerTag['uyg-ders-programi']!,
+    icon: Icons.calendar_view_week_rounded,
+    color: const Color(0xFF26A69A),
+    category: 'time',
+    keywords: const ['school', 'timetable'],
+    builder: (context, t) => TimetableTool(t),
+  ),
+  AppTool(
+    id: 'uyg-odev-takibi',
+    title: kVerTitle['uyg-odev-takibi']!,
+    tagline: kVerTag['uyg-odev-takibi']!,
+    icon: Icons.menu_book_rounded,
+    color: const Color(0xFF8D6E63),
+    category: 'tasks',
+    keywords: const ['homework', 'school'],
+    builder: (context, t) => RecordsTool(t, kHomeworkSpec),
+  ),
+  AppTool(
+    id: 'uyg-vardiya-planlayici',
+    title: kVerTitle['uyg-vardiya-planlayici']!,
+    tagline: kVerTag['uyg-vardiya-planlayici']!,
+    icon: Icons.work_history_rounded,
+    color: const Color(0xFF78909C),
+    category: 'time',
+    keywords: const ['shift', 'work', 'nurse'],
+    builder: (context, t) => ShiftTool(t),
+  ),
+  AppTool(
+    id: 'uyg-sunum-zamanlayici-ve-teleprompter',
+    title: kVerTitle['uyg-sunum-zamanlayici-ve-teleprompter']!,
+    tagline: kVerTag['uyg-sunum-zamanlayici-ve-teleprompter']!,
+    icon: Icons.slideshow_rounded,
+    color: const Color(0xFFAB47BC),
+    category: 'time',
+    keywords: const ['teleprompter', 'speech'],
+    builder: (context, t) => PrompterTool(t),
+  ),
+  AppTool(
+    id: 'uyg-pano-gecmisi',
+    title: kVerTitle['uyg-pano-gecmisi']!,
+    tagline: kVerTag['uyg-pano-gecmisi']!,
+    icon: Icons.content_paste_rounded,
+    color: const Color(0xFF9E9E9E),
+    category: 'write',
+    keywords: const ['clipboard', 'copy'],
+    builder: (context, t) => ClipboardTool(t),
+  ),
+  AppTool(
+    id: 'uyg-etiket-ve-envanter',
+    title: kVerTitle['uyg-etiket-ve-envanter']!,
+    tagline: kVerTag['uyg-etiket-ve-envanter']!,
+    icon: Icons.inventory_2_rounded,
+    color: const Color(0xFFFFA726),
+    category: 'lists',
+    keywords: const ['qr', 'inventory', 'stock'],
+    builder: (context, t) => RecordsTool(t, kInventorySpec),
+  ),
+];
+
+/// Depo adıyla uygulama (ör. 'uyg-not-defteri').
+AppTool verTool(String id) => verTools.firstWhere((t) => t.id == id);
+
+/// Verimlilik merkezinin başlığı ve kısa açıklaması.
+final List<String> verHubTitle = kVerCat['hub_title']!;
+final List<String> verHubTagline = kVerCat['hub_tag']!;
+
+/// Onaylı merkez tasarımının derin lacivert, kehribar vurgulu tonu.
+const ApprovedHubStyle verHubStyle = ApprovedHubStyle(
+  background: [Color(0xFF26245A), Color(0xFF171640), Color(0xFF0D0C26)],
+  accent: Color(0xFFFFC857),
+  card: Color(0xFF34327A),
+  play: Color(0xFFFFB300),
+  number: Colors.white,
+);
+
+/// Öne çıkanlar.
+const List<String> verFeatured = [
+  'uyg-not-defteri', 'uyg-yapilacaklar-listesi', 'uyg-ses-kaydedici', 'uyg-pdf-goruntuleyici',
+  'uyg-hatirlatici', 'uyg-belge-tarayici', 'uyg-sesten-yaziya-not', 'uyg-cevrimdisi-ceviri',
+];
