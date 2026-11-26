@@ -204,6 +204,19 @@ void main() {
       ct[0] ^= 1;
       await expectLater(openWithPassword('doğru at pil zımba', {...env, 'ct': base64Encode(ct)}), throwsA(isA<VaultAuthError>()));
     });
+    test('dosyadaki aşırı KDF ayarı ve kısa tuz reddedilir (bellek tüketme)', () async {
+      final env = await sealWithPassword('doğru at pil zımba', utf8.encode('{}'), params: fast);
+      final kdf = Map<String, Object?>.from(env['kdf'] as Map);
+      await expectLater(
+          openWithPassword('doğru at pil zımba', {...env, 'kdf': {...kdf, 'm': 4 * 1024 * 1024}}), throwsA(isA<VaultAuthError>()));
+      await expectLater(
+          openWithPassword('doğru at pil zımba', {...env, 'kdf': {...kdf, 't': 1000}}), throwsA(isA<VaultAuthError>()));
+      await expectLater(
+          openWithPassword('doğru at pil zımba', {...env, 'kdf': {...kdf, 'salt': base64Encode([1, 2, 3])}}),
+          throwsA(isA<VaultAuthError>()));
+      await expectLater(
+          openWithPassword('doğru at pil zımba', {...env, 'kdf': {...kdf, 'alg': 'md5'}}), throwsA(isA<VaultAuthError>()));
+    });
     test('anahtar türetme belirleyici, tuza bağlı', () async {
       final a = await deriveVaultKey('parola', List.filled(16, 1), fast);
       final b = await deriveVaultKey('parola', List.filled(16, 1), fast);

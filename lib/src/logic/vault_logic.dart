@@ -27,6 +27,11 @@ class KdfParams {
         iterations: (j['t'] as num?)?.toInt() ?? 2,
         parallelism: (j['p'] as num?)?.toInt() ?? 1,
       );
+
+  /// Dosyadan gelen ayarlar makul aralıkta mı: değiştirilmiş bir dosyadaki
+  /// cihazı kilitleyecek kadar büyük ayarla (bellek/süre tüketme) açma denenmez.
+  bool get sane =>
+      memoryKiB >= 8 && memoryKiB <= 262144 && iterations >= 1 && iterations <= 10 && parallelism >= 1 && parallelism <= 8;
 }
 
 /// Yanlış ana şifre ya da bozulmuş dosya.
@@ -93,7 +98,10 @@ Future<List<int>> openVault(List<int> key, Map<String, Object?> env) async {
 (List<int>, KdfParams) vaultKdf(Map<String, Object?> env) {
   final k = (env['kdf'] as Map?)?.cast<String, Object?>() ?? const {};
   final salt = base64Decode(k['salt'] as String? ?? '');
-  return (salt, KdfParams.fromJson(k));
+  final p = KdfParams.fromJson(k);
+  if (k['alg'] != null && k['alg'] != 'argon2id') throw const VaultAuthError();
+  if (salt.length < 16 || !p.sane) throw const VaultAuthError();
+  return (salt, p);
 }
 
 /// Şifreyle doğrudan şifreleme (dışa aktarma): yeni tuz, Argon2id, AES-GCM.

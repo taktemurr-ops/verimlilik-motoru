@@ -18,6 +18,7 @@ import 'package:studio_core/apps/apps.dart';
 
 import '../common.dart';
 import '../logic/vault_logic.dart';
+import '../secure_window.dart';
 
 typedef Js = Map<String, Object?>;
 
@@ -34,7 +35,12 @@ class VaultTool extends StatefulWidget {
 class _VaultToolState extends State<VaultTool> with WidgetsBindingObserver {
   static const _bioKey = 'vault_key_v1';
   static const _idle = Duration(minutes: 5);
-  final _secure = const FlutterSecureStorage();
+  // Biyometrik anahtar yalnız bu cihazda ve cihaz kilidi açıkken okunur;
+  // iCloud Anahtar Zinciri'ne / yedeğe taşınmaz.
+  final _secure = const FlutterSecureStorage(
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.unlocked_this_device),
+    mOptions: MacOsOptions(accessibility: KeychainAccessibility.unlocked_this_device),
+  );
   final _auth = LocalAuthentication();
 
   _Stage _stage = _Stage.loading;
@@ -110,6 +116,11 @@ class _VaultToolState extends State<VaultTool> with WidgetsBindingObserver {
   void _lock() {
     if (_stage != _Stage.open) return;
     _idleTimer?.cancel();
+    // Kopyalanmış şifre panoda bekliyorsa kilitlenirken temizlenir.
+    if (_clipTimer?.isActive ?? false) {
+      _clipTimer?.cancel();
+      Clipboard.setData(const ClipboardData(text: ''));
+    }
     if (!mounted) return;
     setState(() {
       _key = null;
@@ -186,9 +197,14 @@ class _VaultToolState extends State<VaultTool> with WidgetsBindingObserver {
     });
     // Art arda yanlış denemelerde artan bekleme.
     if (_fails >= 3) await Future<void>.delayed(Duration(seconds: (_fails - 2) * 2));
-    final (salt, p) = vaultKdf(_env!);
-    final key = await deriveVaultKey(pw, salt, p);
-    final ok = await _openWith(key);
+    var ok = false;
+    try {
+      final (salt, p) = vaultKdf(_env!);
+      final key = await deriveVaultKey(pw, salt, p);
+      ok = await _openWith(key);
+    } on VaultAuthError {
+      ok = false;
+    }
     if (!mounted) return;
     setState(() {
       _busy = false;
@@ -593,15 +609,17 @@ class _VaultToolState extends State<VaultTool> with WidgetsBindingObserver {
       _Stage.locked => _lockedView(),
       _Stage.open => _openView(),
     };
-    return Listener(
-      onPointerDown: (_) => _touch(),
-      child: Stack(children: [
-        if (_stage == _Stage.loading) const Center(child: CircularProgressIndicator()) else ToolList(children: body),
-        if (_busy)
-          const Positioned.fill(
-            child: ColoredBox(color: Colors.black45, child: Center(child: CircularProgressIndicator())),
-          ),
-      ]),
+    return SecureCurtain(
+      child: Listener(
+        onPointerDown: (_) => _touch(),
+        child: Stack(children: [
+          if (_stage == _Stage.loading) const Center(child: CircularProgressIndicator()) else ToolList(children: body),
+          if (_busy)
+            const Positioned.fill(
+              child: ColoredBox(color: Colors.black45, child: Center(child: CircularProgressIndicator())),
+            ),
+        ]),
+      ),
     );
   }
 }
