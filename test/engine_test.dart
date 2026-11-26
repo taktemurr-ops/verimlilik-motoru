@@ -12,9 +12,9 @@ import 'package:studio_core/core/save_store.dart';
 import 'package:verimlilik_motoru/verimlilik_motoru.dart';
 
 void main() {
-  test('32 uygulama, 33 dilde ad ve açıklama, benzersiz kimlik', () {
-    expect(verTools.length, 32);
-    expect(verTools.map((t) => t.id).toSet().length, 32);
+  test('36 uygulama, 33 dilde ad ve açıklama, benzersiz kimlik', () {
+    expect(verTools.length, 36);
+    expect(verTools.map((t) => t.id).toSet().length, 36);
     for (final t in verTools) {
       expect(t.title.length, 33, reason: t.id);
       expect(t.tagline.length, 33, reason: t.id);
@@ -291,6 +291,7 @@ void main() {
     'uyg-film-ve-dizi-izleme-listesi', 'uyg-ders-programi', 'uyg-odev-takibi', 'uyg-vardiya-planlayici',
     'uyg-sunum-zamanlayici-ve-teleprompter', 'uyg-pano-gecmisi', 'uyg-etiket-ve-envanter',
     'uyg-sifre-kasasi', 'uyg-hedef-takibi', 'uyg-proje-zaman-cizelgesi',
+    'uyg-dogrulama-kodlari', 'uyg-pdf-imza-ve-form', 'uyg-odak-kilidi', 'uyg-ozgecmis-olusturucu',
   ]) {
     testWidgets('ekran açılır: $id', (tester) async {
       final s = AppServices(hubId: 'm', backend: MemoryBackend(), ads: NoAdsService(), purchases: NoPurchaseService());
