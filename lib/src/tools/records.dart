@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:pdf/pdf.dart';
@@ -413,7 +414,9 @@ class _RecordsToolState extends State<RecordsTool> {
                 },
               ),
             if (s.codeKey != null) ...[
-              IconButton(tooltip: L(t, 'find_scan'), icon: const Icon(Icons.qr_code_scanner_rounded), onPressed: _scanFind),
+              // Barkod tarayıcı (mobile_scanner) Windows ve Linux'ta yok.
+              if (_scanSupported)
+                IconButton(tooltip: L(t, 'find_scan'), icon: const Icon(Icons.qr_code_scanner_rounded), onPressed: _scanFind),
               IconButton(tooltip: L(t, 'labels_pdf'), icon: const Icon(Icons.picture_as_pdf_rounded), onPressed: _labelsPdf),
             ],
             IconButton(tooltip: L(t, 'export_csv'), icon: const Icon(Icons.ios_share_rounded), onPressed: _items.isEmpty ? null : _exportCsv),
@@ -665,3 +668,11 @@ class _ScanSheetState extends State<_ScanSheet> {
         ),
       );
 }
+
+/// Kamerayla barkod/QR okuma bu platformda var mı (mobile_scanner: Android,
+/// iOS, macOS, web)?
+bool get _scanSupported =>
+    kIsWeb ||
+    defaultTargetPlatform == TargetPlatform.android ||
+    defaultTargetPlatform == TargetPlatform.iOS ||
+    defaultTargetPlatform == TargetPlatform.macOS;
