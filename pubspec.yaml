@@ -13,7 +13,7 @@ dependencies:
   studio_core:
     git:
       url: https://github.com/taktemurr-ops/studio-core
-      ref: 92b51dd7d47c300d3611c448b5474fca5f793f2a
+      ref: 8cb935c63a86ca3e5fb38758edd5bb8ec44dccdd
   audioplayers: ^6.5.0
   cryptography: ^2.7.0
   file_picker: ">=8.1.0 <11.0.0"

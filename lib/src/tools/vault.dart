@@ -290,9 +290,6 @@ class _VaultToolState extends State<VaultTool> with WidgetsBindingObserver {
                   style: const TextStyle(fontFamily: 'monospace', fontSize: 17),
                   decoration: InputDecoration(
                     labelText: L(t, 'vault_password'),
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.06),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
                     suffixIcon: IconButton(
                       icon: Icon(hide ? Icons.visibility_rounded : Icons.visibility_off_rounded),
                       onPressed: () => set(() => hide = !hide),
@@ -472,9 +469,6 @@ class _VaultToolState extends State<VaultTool> with WidgetsBindingObserver {
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
             labelText: label,
-            filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.06),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
             suffixIcon: IconButton(
               icon: Icon(_show ? Icons.visibility_off_rounded : Icons.visibility_rounded),
               onPressed: () => setState(() => _show = !_show),
@@ -530,9 +524,6 @@ class _VaultToolState extends State<VaultTool> with WidgetsBindingObserver {
           decoration: InputDecoration(
             prefixIcon: const Icon(Icons.search_rounded),
             hintText: L(t, 'find'),
-            filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.06),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
           ),
           onChanged: (v) => setState(() {
             _q = v;

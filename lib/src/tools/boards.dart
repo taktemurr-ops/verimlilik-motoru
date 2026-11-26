@@ -178,9 +178,6 @@ class _ChecklistToolState extends State<ChecklistTool> {
               onSubmitted: (_) => _addItem(),
               decoration: InputDecoration(
                 hintText: L(t, 'item'),
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.06),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
               ),
             ),
           ),

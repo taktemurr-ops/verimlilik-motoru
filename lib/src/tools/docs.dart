@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:studio_core/app/studio_ui.dart';
 import 'package:studio_core/apps/apps.dart';
 
 import '../common.dart';
@@ -862,8 +863,11 @@ class _InvoiceEditorState extends State<_InvoiceEditor> {
     final tot = invoiceTotals(_items, discountPct: (d['disc'] as num?)?.toDouble() ?? 0);
     final type = (d['type'] as num?)?.toInt() ?? 0;
     return Scaffold(
+      backgroundColor: StudioLook.of(context).base,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(L(t, type == 1 ? 'quote' : 'invoice')),
+        backgroundColor: Colors.transparent,
+        title: StudioTitle(L(t, type == 1 ? 'quote' : 'invoice'), icon: Icons.receipt_long_rounded),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline_rounded),
@@ -888,7 +892,7 @@ class _InvoiceEditorState extends State<_InvoiceEditor> {
         icon: const Icon(Icons.check_rounded),
         label: Text(L(t, 'save')),
       ),
-      body: ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 96), children: [
+      body: StudioBackdrop(child: SafeArea(child: ListView(padding: const EdgeInsets.fromLTRB(16, 8, 16, 96), children: [
         Choice<int>(
           values: const [0, 1],
           labels: [L(t, 'invoice'), L(t, 'quote')],
@@ -924,7 +928,7 @@ class _InvoiceEditorState extends State<_InvoiceEditor> {
         AppResult(label: L(t, 'vat_total'), value: '${centsText(tot.vat)} ${widget.currency}', lang: t.lang),
         AppResult(label: L(t, 'grand_total'), value: '${centsText(tot.total)} ${widget.currency}', lang: t.lang, big: true),
         AppTextField(controller: _notes, label: L(t, 'note'), maxLines: 4),
-      ]),
+      ]))),
     );
   }
 }
