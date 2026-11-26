@@ -406,9 +406,9 @@ class _SpeechNoteToolState extends State<SpeechNoteTool> {
           ]),
           const SizedBox(height: 6),
           Text(_listening ? L(t, 'listening') : L(t, 'tap_to_speak'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
-          Row(children: [
+          // Dar ekranda ve büyük yazıda düğmeler alt satıra geçer.
+          Wrap(alignment: WrapAlignment.spaceBetween, spacing: 8, runSpacing: 6, children: [
             TextButton.icon(onPressed: _text.text.isEmpty ? null : () => copyText(context, t, _text.text), icon: const Icon(Icons.copy_rounded), label: Text(t.tx('copied'))),
-            const Spacer(),
             FilledButton.icon(onPressed: _saveCurrent, icon: const Icon(Icons.save_rounded), label: Text(L(t, 'save'))),
           ]),
         ]),
