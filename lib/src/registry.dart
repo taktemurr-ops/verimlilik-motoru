@@ -1,4 +1,4 @@
-/// Üretilmiş dosya (proto/apps/verimlilik/mkengine.py). Verimlilik ailesinin 32 uygulaması.
+/// Üretilmiş dosya (proto/apps/verimlilik/mkengine.py). Verimlilik ailesinin 36 uygulaması.
 library;
 
 import 'package:flutter/material.dart';
@@ -6,11 +6,15 @@ import 'package:studio_core/apps/apps.dart';
 
 import 'tools/boards.dart';
 import 'tools/calendar.dart';
+import 'tools/cv.dart';
 import 'tools/docs.dart';
+import 'tools/focus.dart';
 import 'tools/gantt.dart';
 import 'tools/goals.dart';
 import 'tools/lists.dart';
 import 'tools/ml.dart';
+import 'tools/otp.dart';
+import 'tools/pdf_sign.dart';
 import 'tools/plan.dart';
 import 'tools/records.dart';
 import 'tools/vault.dart';
@@ -352,6 +356,46 @@ final List<AppTool> verTools = [
     category: 'time',
     keywords: const ['gantt', 'timeline', 'project'],
     builder: (context, t) => GanttTool(t),
+  ),
+  AppTool(
+    id: 'uyg-dogrulama-kodlari',
+    title: kVerTitle['uyg-dogrulama-kodlari']!,
+    tagline: kVerTag['uyg-dogrulama-kodlari']!,
+    icon: Icons.verified_user_rounded,
+    color: const Color(0xFF4DB6AC),
+    category: 'lists',
+    keywords: const ['2fa', 'totp', 'otp', 'authenticator'],
+    builder: (context, t) => OtpTool(t),
+  ),
+  AppTool(
+    id: 'uyg-pdf-imza-ve-form',
+    title: kVerTitle['uyg-pdf-imza-ve-form']!,
+    tagline: kVerTag['uyg-pdf-imza-ve-form']!,
+    icon: Icons.history_edu_rounded,
+    color: const Color(0xFFE57373),
+    category: 'docs',
+    keywords: const ['pdf', 'sign', 'signature', 'form'],
+    builder: (context, t) => PdfSignTool(t),
+  ),
+  AppTool(
+    id: 'uyg-odak-kilidi',
+    title: kVerTitle['uyg-odak-kilidi']!,
+    tagline: kVerTag['uyg-odak-kilidi']!,
+    icon: Icons.do_not_disturb_on_rounded,
+    color: const Color(0xFF9575CD),
+    category: 'time',
+    keywords: const ['focus', 'screen time', 'block', 'detox'],
+    builder: (context, t) => FocusTool(t),
+  ),
+  AppTool(
+    id: 'uyg-ozgecmis-olusturucu',
+    title: kVerTitle['uyg-ozgecmis-olusturucu']!,
+    tagline: kVerTag['uyg-ozgecmis-olusturucu']!,
+    icon: Icons.badge_rounded,
+    color: const Color(0xFF64B5F6),
+    category: 'docs',
+    keywords: const ['cv', 'resume', 'pdf', 'job'],
+    builder: (context, t) => CvTool(t),
   ),
 ];
 
